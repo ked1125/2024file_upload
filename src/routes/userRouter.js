@@ -10,6 +10,7 @@ const { hash, compare } = require("bcryptjs");
 // hash는 password 암호화
 
 userRouter.post("/reg", async function (req, res) {
+  // post는 회원가입!!
   // try~catch 시작, catch부분 먼저 작성 후 try 작성 본격적으로 시작하기.
   try {
     const password = await hash(req.body.password, 10);
@@ -37,6 +38,7 @@ userRouter.post("/reg", async function (req, res) {
 
 userRouter.post("/login", async function (req, res) {
   try {
+    // 로그인?
     // console.log(req.body);
     const user = await User.findOne({ useremail: req.body.useremail });
     const isValid = await compare(req.body.password, user.password);
