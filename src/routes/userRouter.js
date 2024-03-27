@@ -7,6 +7,7 @@ const express = require("express");
 const userRouter = express.Router();
 // const userRouter = Router();
 const { hash, compare } = require("bcryptjs");
+const { upload } = require("../middleweares/imgeUpload");
 // hash는 password 암호화
 
 userRouter.post("/reg", async function (req, res) {
@@ -29,6 +30,7 @@ userRouter.post("/reg", async function (req, res) {
     // {중괄호 안쪽에 req.body} 쓰고싶으면 ...로 깊은복사?해줘야함
 
     return res.send({ user });
+    // ★중괄호 안쪽은 항상!!!!!!!!!!! 키:밸류 라는걸 꼭 숙지!
     // return res.send({ password : password });
     //
   } catch (error) {
@@ -58,7 +60,7 @@ userRouter.post("/login", async function (req, res) {
   }
 });
 
-userRouter.get("/", async function (req, res) {
+userRouter.get("/member", async function (req, res) {
   try {
     const user = await User.find({});
     return res.send({ user });
@@ -66,6 +68,39 @@ userRouter.get("/", async function (req, res) {
     return res.status(500).send({ error: error.message });
   }
 });
+
+userRouter.put(
+  "/reg_modi/:userId",
+  // ㄱ. 포스트맨에서의 파라미터값 속 userId가 들어감
+  upload.single("avatar"),
+  // ㄴ. 포스트맨에서 key값  avatar가 들어감
+  async function (req, res) {
+    try {
+      const userId = req.params.userId;
+      // const {userId} = req.params
+      const { username } = req.body;
+      // ㄷ. 포스트맨의 key값 username이 들어감
+      const { filename, originalname } = req.file;
+      // ㄹ. req.file에 포스트맨 바디속 value값인 이미지파일이 들어감
+
+      const image = { filename, originalname };
+      // const image={filename:filename,originalname:originalname}
+      // {중괄호 안쪽}은 무조건!! key:value 의 형태를 띈다!
+      const update = await User.findOneAndUpdate(
+        { _id: userId },
+        // 데이터(전체문서)중에서 _id값을 찾겠다는 의미.
+        { username, image },
+        // { usename: username, image:image }
+        // 변경 시켜줄 값 _ Schema파일안에서 확인해주시면됩니당
+        { new: true }
+        // 입력함과 동시에 바로 반영하겠다는 의미
+      );
+      return res.send({ update });
+    } catch (error) {
+      return res.status(500).send({ error: error.message });
+    }
+  }
+);
 
 module.exports = { userRouter };
 // 해당 파일을 서버에서 받아 사용하기위한 코드 (배포느낌??)
